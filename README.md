@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # SkyResidence - Hệ thống quản lý chung cư
 
 ## 1. Công nghệ
@@ -69,4 +68,3 @@ Sau khi chạy script SQL và mở ứng dụng:
 - Môi trường đóng gói không có Windows/.NET SDK/SQL Server nên chưa thể chạy thử giao diện WinForms hoặc xác nhận kết nối SQL thực tế. Hãy làm theo mục 5 để kiểm thử trên máy Windows.
 =======
 # QuanLyChungCu
->>>>>>> 2bc7eb51aff77f09ca90caea0f918116e8a22fc7
