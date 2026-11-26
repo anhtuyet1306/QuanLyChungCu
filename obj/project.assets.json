@@ -1016,11 +1016,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\admin\\Downloads\\SkyResidence_Complete\\QuanLyChungCu_SkyResidence.csproj",
+      "projectUniqueName": "C:\\Users\\admin\\OneDrive\\Dokumen\\QuanLyChungCu\\QuanLyChungCu_SkyResidence.csproj",
       "projectName": "QuanLyChungCu_SkyResidence",
-      "projectPath": "C:\\Users\\admin\\Downloads\\SkyResidence_Complete\\QuanLyChungCu_SkyResidence.csproj",
+      "projectPath": "C:\\Users\\admin\\OneDrive\\Dokumen\\QuanLyChungCu\\QuanLyChungCu_SkyResidence.csproj",
       "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\admin\\Downloads\\SkyResidence_Complete\\obj\\",
+      "outputPath": "C:\\Users\\admin\\OneDrive\\Dokumen\\QuanLyChungCu\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
