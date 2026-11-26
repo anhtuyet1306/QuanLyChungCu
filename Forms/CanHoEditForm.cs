@@ -8,7 +8,7 @@ using QuanLyChungCu_SkyResidence.Styles;
 namespace QuanLyChungCu_SkyResidence.Forms;
 
 /// <summary>Hộp thoại Thêm / Sửa căn hộ. existing = null nghĩa là thêm mới.</summary>
-public class CanHoEditForm : Form
+public class CanHoEditForm : Form, QuanLyChungCu_SkyResidence.Controls.IEntityEditor<CanHo>
 {
     private readonly CanHoService _service;
     private readonly CanHo _model;
@@ -193,17 +193,7 @@ public class CanHoEditForm : Form
 
         try
         {
-            var errors = _service.Validate(ch, _isNew);
-            if (errors.Count > 0)
-            {
-                MessageBox.Show(
-                    "Vui lòng kiểm tra lại:\n\n• " + string.Join("\n• ", errors),
-                    "Dữ liệu chưa hợp lệ",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
+            // Service.Save luôn kiểm tra dữ liệu trước khi ghi SQL.
             var result = _service.Save(ch, _isNew);
             if (!result.Success)
             {

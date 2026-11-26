@@ -1,0 +1,65 @@
+using System.Reflection;
+using System.Windows.Forms;
+using QuanLyChungCu_SkyResidence.Controls;
+using QuanLyChungCu_SkyResidence.Helpers;
+using QuanLyChungCu_SkyResidence.Models;
+using QuanLyChungCu_SkyResidence.Pages;
+using QuanLyChungCu_SkyResidence.Services;
+
+internal static class Checks
+{
+    private static int passed;
+    [STAThread]
+    private static void Main()
+    {
+        CheckPage("CANHO", u => new ApartmentsPage(u));
+        CheckPage("CUDAN", u => new ResidentsPage(u));
+        var user = new AuthUser();
+        Assert(!user.HasPermission("CUDAN", "xoa"), "Missing permission denies access");
+        user.Permissions.Add(new AuthPermission { MaChucNang="CUDAN", CoXem=true });
+        Assert(user.HasPermission("cudan", "XEM"), "Permission matching ignores case");
+        Assert(!user.HasPermission("CUDAN", "unknown"), "Unknown action denies access");
+        Assert(!user.HasPermission("CANHO", "xem"), "Resident permission does not grant apartment access");
+        var original = new CuDan { HoTen="Nguyễn An", TinhTrangCuTru=CuDan.DangCuTru };
+        var clone = original.Clone();
+        clone.HoTen="Changed";
+        clone.TinhTrangCuTru=CuDan.DaChuyenDi;
+        Assert(original.HoTen=="Nguyễn An" && original.TinhTrangCuTru==CuDan.DangCuTru, "Editing clone preserves original");
+        Assert(TextHelper.ContainsIgnoreAccent("Nguyễn An Đã chuyển đi", "da chuyen di"), "Search supports unaccented residency status");
+        foreach (string name in new[] { "OnAdd", "OnEdit", "OnDelete" })
+        {
+            var method=typeof(CrudPage<CuDan>).GetMethod(name, BindingFlags.Instance|BindingFlags.NonPublic)!;
+            Assert(method.IsFinal, $"{name} workflow cannot be accidentally overridden");
+        }
+        Console.WriteLine($"PASS: {passed} checks. No SQL Server connection or visible windows used.");
+    }
+    private static void CheckPage(string feature, Func<AuthUser, BasePage> create)
+    {
+        // Tất cả tổ hợp quyền, kể cả có quyền sửa nhưng không có quyền xem.
+        for (int mask=0; mask<16; mask++)
+        {
+            var user=new AuthUser();
+            user.Permissions.Add(new AuthPermission {
+                MaChucNang=feature, CoXem=(mask&1)!=0, CoThem=(mask&2)!=0,
+                CoSua=(mask&4)!=0, CoXoa=(mask&8)!=0 });
+            using var page=create(user);
+            var buttons=AllControls(page).OfType<Button>().ToDictionary(x=>x.Text);
+            Assert(buttons["+ Thêm mới"].Enabled==((mask&3)==3), feature+" add "+mask);
+            Assert(buttons["Sửa"].Enabled==((mask&5)==5), feature+" edit "+mask);
+            Assert(buttons["Xóa"].Enabled==((mask&9)==9), feature+" delete "+mask);
+        }
+    }
+    private static IEnumerable<Control> AllControls(Control parent)
+    {
+        foreach (Control child in parent.Controls)
+        {
+            yield return child;
+            foreach (var nested in AllControls(child)) yield return nested;
+        }
+    }
+    private static void Assert(bool condition, string name)
+    {
+        if (!condition) throw new Exception("FAIL: "+name);
+        passed++;
+    }
+}

@@ -7,7 +7,7 @@ using QuanLyChungCu_SkyResidence.Styles;
 namespace QuanLyChungCu_SkyResidence.Forms;
 
 /// <summary>Biểu mẫu thêm/sửa cư dân.</summary>
-public class CuDanEditForm : Form
+public class CuDanEditForm : Form, QuanLyChungCu_SkyResidence.Controls.IEntityEditor<CuDan>
 {
     private readonly CuDanService _service;
     private readonly bool _isNew;
@@ -19,6 +19,7 @@ public class CuDanEditForm : Form
     private readonly TextBox txtDienThoai = new();
     private readonly ComboBox cboCanHo = new();
     private readonly ComboBox cboVaiTro = new();
+    private readonly ComboBox cboTinhTrang = new();
 
     public CuDan? Result { get; private set; }
 
@@ -41,7 +42,7 @@ public class CuDanEditForm : Form
         ShowInTaskbar = false;
         Font = AppStyles.NormalFont;
         BackColor = Color.White;
-        ClientSize = new Size(500, 430);
+        ClientSize = new Size(530, 490);
 
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -72,6 +73,8 @@ public class CuDanEditForm : Form
         foreach (string ma in _service.GetApartmentCodes()) cboCanHo.Items.Add(ma);
         cboVaiTro.DropDownStyle = ComboBoxStyle.DropDownList;
         cboVaiTro.Items.AddRange(new object[] { "Chủ hộ", "Thành viên" });
+        cboTinhTrang.DropDownStyle = ComboBoxStyle.DropDownList;
+        cboTinhTrang.Items.AddRange(new object[] { CuDan.DangCuTru, CuDan.DaChuyenDi });
 
         var datePanel = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight };
         dtNgaySinh.Width = 135;
@@ -85,6 +88,7 @@ public class CuDanEditForm : Form
         AddRow(fields, "Số điện thoại", txtDienThoai);
         AddRow(fields, "Căn hộ", cboCanHo);
         AddRow(fields, "Vai trò *", cboVaiTro);
+        AddRow(fields, "Tình trạng cư trú *", cboTinhTrang);
 
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(24, 10, 24, 10) };
         root.Controls.Add(buttons, 0, 1);
@@ -118,6 +122,7 @@ public class CuDanEditForm : Form
         cboCanHo.SelectedItem = string.IsNullOrWhiteSpace(_model.MaCH) ? "(Chưa phân căn hộ)" : _model.MaCH;
         if (cboCanHo.SelectedIndex < 0) cboCanHo.SelectedIndex = 0;
         cboVaiTro.SelectedItem = _model.VaiTro;
+        cboTinhTrang.SelectedItem = _model.TinhTrangCuTru;
         if (cboVaiTro.SelectedIndex < 0) cboVaiTro.SelectedItem = "Thành viên";
     }
 
@@ -130,17 +135,13 @@ public class CuDanEditForm : Form
             NgaySinh = chkCoNgaySinh.Checked ? dtNgaySinh.Value.Date : null,
             SoDienThoai = txtDienThoai.Text.Trim(),
             MaCH = cboCanHo.SelectedItem?.ToString() == "(Chưa phân căn hộ)" ? null : cboCanHo.SelectedItem?.ToString(),
-            VaiTro = cboVaiTro.SelectedItem?.ToString() ?? ""
+            VaiTro = cboVaiTro.SelectedItem?.ToString() ?? "",
+            TinhTrangCuTru = cboTinhTrang.SelectedItem?.ToString() ?? ""
         };
 
         try
         {
-            var errors = _service.Validate(cd, _isNew);
-            if (errors.Count > 0)
-            {
-                MessageBox.Show("Vui lòng kiểm tra lại:\n\n• " + string.Join("\n• ", errors), "Dữ liệu chưa hợp lệ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            // Service.Save luôn kiểm tra dữ liệu trước khi ghi SQL.
             var result = _service.Save(cd, _isNew);
             if (!result.Success)
             {

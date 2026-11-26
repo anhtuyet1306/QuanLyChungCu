@@ -22,6 +22,16 @@ public class BasePage : UserControl
     protected TextBox SearchBox { get; }
 
     private readonly Label statusLabel;
+    private readonly Button addButton;
+    private readonly Button editButton;
+    private readonly Button deleteButton;
+
+    protected void SetCrudButtons(bool canAdd, bool canEdit, bool canDelete)
+    {
+        addButton.Enabled = canAdd;
+        editButton.Enabled = canEdit;
+        deleteButton.Enabled = canDelete;
+    }
 
     public BasePage(string title, string description)
     {
@@ -99,9 +109,9 @@ public class BasePage : UserControl
         };
 
         var searchButton = CreateButton("Tìm kiếm", Blue);
-        var addButton = CreateButton("+ Thêm mới", Color.FromArgb(32, 160, 100));
-        var editButton = CreateButton("Sửa", Color.FromArgb(235, 158, 45));
-        var deleteButton = CreateButton("Xóa", Color.FromArgb(210, 70, 70));
+        addButton = CreateButton("+ Thêm mới", Color.FromArgb(32, 160, 100));
+        editButton = CreateButton("Sửa", Color.FromArgb(235, 158, 45));
+        deleteButton = CreateButton("Xóa", Color.FromArgb(210, 70, 70));
         var refreshButton = CreateButton("Làm mới", Color.FromArgb(95, 110, 130));
 
         toolbar.Controls.AddRange(new Control[]

@@ -69,8 +69,8 @@ public class CanHoService
             errors.Add("Tình trạng căn hộ không hợp lệ.");
 
         // Luật: căn hộ còn người ở thì không được chuyển sang "Còn trống".
-        if (!isNew && ch.TrangThai == CanHo.ConTrong && _repo.CountResidentsLiving(ch.MaCH) > 0)
-            errors.Add("Căn hộ vẫn còn cư dân đang cư trú nên không thể chuyển sang 'Còn trống'. " +
+        if (!isNew && ch.TrangThai != CanHo.DangO && _repo.CountResidentsLiving(ch.MaCH) > 0)
+            errors.Add("Căn hộ vẫn còn cư dân đang cư trú nên không thể chuyển sang 'Còn trống' hoặc 'Đang bảo trì'. " +
                        "Hãy cập nhật tình trạng cư trú của cư dân trước.");
 
         return errors;
@@ -80,6 +80,8 @@ public class CanHoService
     {
         try
         {
+            var errors = Validate(ch, isNew);
+            if (errors.Count > 0) return OperationResult.Fail(string.Join("\n", errors));
             if (isNew)
                 _repo.Insert(ch);
             else if (_repo.Update(ch) == 0)
@@ -90,6 +92,10 @@ public class CanHoService
         catch (SqlException ex) when (ex.Number is 2627 or 2601)
         {
             return OperationResult.Fail($"Mã căn hộ {ch.MaCH} đã tồn tại.");
+        }
+        catch (SqlException ex) when (ex.Number is 547 or 50004)
+        {
+            return OperationResult.Fail("Không thể lưu: căn hộ còn cư dân đang cư trú hoặc dữ liệu liên kết không hợp lệ.");
         }
     }
 
@@ -105,7 +111,7 @@ public class CanHoService
         {
             return OperationResult.Fail(
                 $"Không thể xóa căn hộ {maCH} vì đã có dữ liệu liên quan (cư dân, hợp đồng, hóa đơn, sự cố...).\n\n" +
-                "Hãy chuyển tình trạng sang 'Còn trống' hoặc 'Đang bảo trì' thay vì xóa.");
+                "Hãy giữ hồ sơ căn hộ. Chỉ cập nhật trạng thái phù hợp sau khi xử lý tình trạng cư trú.");
         }
     }
 }

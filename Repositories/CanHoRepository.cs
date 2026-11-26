@@ -44,7 +44,7 @@ public class CanHoRepository
     public int CountResidentsLiving(string maCH)
     {
         return Database.Scalar<int>(
-            "SELECT COUNT(1) FROM dbo.CuDan WHERE MaCH = @MaCH AND TinhTrangCuTru <> N'Đã chuyển đi'",
+            "SELECT COUNT(1) FROM dbo.CuDan WHERE MaCH = @MaCH AND TinhTrangCuTru = N'Đang cư trú'",
             new SqlParameter("@MaCH", maCH));
     }
 
@@ -58,10 +58,23 @@ public class CanHoRepository
 
     public int Update(CanHo ch)
     {
-        return Database.Execute(
-            "UPDATE dbo.CanHo SET MaToa = @MaToa, Tang = @Tang, DienTich = @DienTich, " +
-            "SoXeMay = @SoXeMay, SoOTo = @SoOTo, TrangThai = @TrangThai WHERE MaCH = @MaCH",
-            ToParams(ch));
+        using var conn = Database.GetConnection();
+        conn.Open();
+        using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
+        using var cmd = new SqlCommand("""
+            DECLARE @LockedMaCH varchar(10);
+            SELECT @LockedMaCH=MaCH FROM dbo.CanHo WITH (UPDLOCK, HOLDLOCK) WHERE MaCH=@MaCH;
+            IF @TrangThai<>N'Đang ở' AND EXISTS (
+                SELECT 1 FROM dbo.CuDan WHERE MaCH=@MaCH AND TinhTrangCuTru=N'Đang cư trú')
+                THROW 50004, N'Căn hộ vẫn còn cư dân đang cư trú.', 1;
+            UPDATE dbo.CanHo SET MaToa=@MaToa, Tang=@Tang, DienTich=@DienTich,
+                SoXeMay=@SoXeMay, SoOTo=@SoOTo, TrangThai=@TrangThai WHERE MaCH=@MaCH;
+            SELECT @@ROWCOUNT;
+            """, conn, transaction);
+        cmd.Parameters.AddRange(ToParams(ch));
+        int affected = Convert.ToInt32(cmd.ExecuteScalar());
+        transaction.Commit();
+        return affected;
     }
 
     public int Delete(string maCH)

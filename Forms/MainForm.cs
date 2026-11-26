@@ -141,10 +141,10 @@ public class MainForm : Form
             () => ShowPage(new DashboardPage()));
 
         AddMenu(menu, "CUDAN", "Quản lý cư dân",
-            () => ShowPage(new ResidentsPage()));
+            () => ShowPage(new ResidentsPage(currentUser)));
 
         AddMenu(menu, "CANHO", "Quản lý căn hộ",
-            () => ShowPage(new ApartmentsPage()));
+            () => ShowPage(new ApartmentsPage(currentUser)));
 
         AddMenu(menu, "PHI", "Quản lý phí dịch vụ",
             () => ShowPage(new FeesPage()));
@@ -229,9 +229,9 @@ public class MainForm : Form
         }
 
         if (currentUser.HasPermission("CUDAN", "xem"))
-            ShowPage(new ResidentsPage());
+            ShowPage(new ResidentsPage(currentUser));
         else if (currentUser.HasPermission("CANHO", "xem"))
-            ShowPage(new ApartmentsPage());
+            ShowPage(new ApartmentsPage(currentUser));
         else if (currentUser.HasPermission("PHI", "xem"))
             ShowPage(new FeesPage());
         else if (currentUser.HasPermission("THANHTOAN", "xem"))

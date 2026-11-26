@@ -11,16 +11,16 @@ namespace QuanLyChungCu_SkyResidence.Pages;
 /// <summary>
 /// MODULE MẪU: các module khác (Cư dân, Phí, Tiện ích, Sự cố...) làm theo đúng khuôn này.
 /// </summary>
-public class ApartmentsPage : BasePage
+public class ApartmentsPage : CrudPage<CanHo>
 {
     private static readonly Font BoldFont = new("Segoe UI", 9, FontStyle.Bold);
 
     private readonly CanHoService _service = new();
     private List<CanHo> _all = new();
 
-    public ApartmentsPage()
+    public ApartmentsPage(AuthUser user)
         : base("QUẢN LÝ CĂN HỘ",
-            "Theo dõi thông tin, diện tích và tình trạng từng căn hộ.")
+            "Nhân viên ban quản lý phụ trách danh mục căn hộ.", user, "CANHO", "căn hộ")
     {
         // Khai báo cột: (tiêu đề, tên thuộc tính trong model, độ rộng, căn giữa, định dạng)
         AddColumn("Mã căn hộ", nameof(CanHo.MaCH), 80, center: true);
@@ -52,6 +52,7 @@ public class ApartmentsPage : BasePage
     // ===== 1. Nạp dữ liệu =====
     protected override void LoadData()
     {
+        if (!CanView) return;
         _all = _service.GetAll();
         ApplyFilter();
     }
@@ -71,59 +72,7 @@ public class ApartmentsPage : BasePage
         Bind(list, $"Hiển thị {list.Count}/{_all.Count} căn hộ");
     }
 
-    // ===== 3. Thêm =====
-    protected override void OnAdd()
-    {
-        using var form = new CanHoEditForm(_service, null);
-        if (form.ShowDialog(this) != DialogResult.OK || form.Result is null)
-            return;
-
-        string ma = form.Result.MaCH;
-        LoadData();
-        SelectRow<CanHo>(c => c.MaCH == ma);
-    }
-
-    // ===== 4. Sửa =====
-    protected override void OnEdit()
-    {
-        var selected = SelectedItem<CanHo>();
-        if (selected is null)
-        {
-            ShowWarning("Vui lòng chọn một căn hộ cần sửa.");
-            return;
-        }
-
-        using var form = new CanHoEditForm(_service, selected);
-        if (form.ShowDialog(this) != DialogResult.OK || form.Result is null)
-            return;
-
-        string ma = form.Result.MaCH;
-        LoadData();
-        SelectRow<CanHo>(c => c.MaCH == ma);
-    }
-
-    // ===== 5. Xóa =====
-    protected override void OnDelete()
-    {
-        var selected = SelectedItem<CanHo>();
-        if (selected is null)
-        {
-            ShowWarning("Vui lòng chọn một căn hộ cần xóa.");
-            return;
-        }
-
-        if (!Confirm($"Bạn có chắc muốn xóa căn hộ {selected.MaCH}?"))
-            return;
-
-        var result = _service.Delete(selected.MaCH);
-        if (result.Success)
-        {
-            ShowInfo(result.Message);
-            LoadData();
-        }
-        else
-        {
-            ShowWarning(result.Message);
-        }
-    }
+    protected override Form CreateEditor(CanHo? item) => new CanHoEditForm(_service, item);
+    protected override string GetKey(CanHo item) => item.MaCH;
+    protected override OperationResult DeleteItem(CanHo item) => _service.Delete(item.MaCH);
 }

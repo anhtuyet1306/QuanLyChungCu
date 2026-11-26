@@ -28,13 +28,17 @@ public class CuDanService
             errors.Add("Ngày sinh không được ở tương lai.");
 
         if (!string.IsNullOrWhiteSpace(cd.SoDienThoai) && !PhoneRegex.IsMatch(cd.SoDienThoai.Trim()))
-            errors.Add("Số điện thoại phải bắt đầu bằng 0 hoặc +84 và có 9–11 chữ số.");
+            errors.Add("Số điện thoại phải bắt đầu bằng 0 hoặc +84, theo sau là 8–10 chữ số.");
 
         if (!string.IsNullOrWhiteSpace(cd.MaCH) && !_repo.GetApartmentCodes().Contains(cd.MaCH))
             errors.Add("Căn hộ được chọn không tồn tại.");
 
         if (cd.VaiTro is not ("Chủ hộ" or "Thành viên"))
             errors.Add("Vai trò phải là Chủ hộ hoặc Thành viên.");
+        if (cd.TinhTrangCuTru is not (CuDan.DangCuTru or CuDan.DaChuyenDi))
+            errors.Add("Tình trạng phải là Đang cư trú hoặc Đã chuyển đi.");
+        if (cd.VaiTro == "Chủ hộ" && string.IsNullOrWhiteSpace(cd.MaCH))
+            errors.Add("Chủ hộ phải được liên kết với một căn hộ.");
         return errors;
     }
 
@@ -42,6 +46,8 @@ public class CuDanService
     {
         try
         {
+            var errors = Validate(cd, isNew);
+            if (errors.Count > 0) return OperationResult.Fail(string.Join("\n", errors));
             if (isNew) _repo.Insert(cd);
             else if (_repo.Update(cd) == 0) return OperationResult.Fail($"Không tìm thấy cư dân {cd.MaCD}.");
             return OperationResult.Ok(isNew ? $"Đã thêm cư dân {cd.MaCD}." : $"Đã cập nhật cư dân {cd.MaCD}.");
@@ -54,13 +60,28 @@ public class CuDanService
         {
             return OperationResult.Fail("Không thể lưu vì căn hộ được chọn không hợp lệ hoặc đang có dữ liệu liên quan.");
         }
+        catch (SqlException ex) when (ex.Number is 50001 or 50002 or 50003)
+        {
+            return OperationResult.Fail(ex.Message);
+        }
     }
 
     public OperationResult Delete(string maCD)
     {
-        int affected = _repo.Delete(maCD);
-        return affected == 0
-            ? OperationResult.Fail("Không thể xóa cư dân. Cư dân không tồn tại hoặc đã chuyển đi.")
-            : OperationResult.Ok($"Đã xóa cư dân {maCD}.");
+        try
+        {
+            int affected = _repo.Delete(maCD);
+            return affected == 0
+                ? OperationResult.Fail("Cư dân không còn tồn tại.")
+                : OperationResult.Ok($"Đã xóa cư dân {maCD}.");
+        }
+        catch (SqlException ex) when (ex.Number == 547)
+        {
+            return OperationResult.Fail("Không thể xóa cư dân đã có dữ liệu liên quan. Nếu chuyển đi, hãy sửa tình trạng cư trú.");
+        }
+        catch (SqlException ex) when (ex.Number == 50003)
+        {
+            return OperationResult.Fail(ex.Message);
+        }
     }
 }
