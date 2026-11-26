@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QuanLyChungCu_SkyResidence")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+46e29fc1fd648d11ee1dae55b2534fbc805996a3")]
 [assembly: System.Reflection.AssemblyProductAttribute("QuanLyChungCu_SkyResidence")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QuanLyChungCu_SkyResidence")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
