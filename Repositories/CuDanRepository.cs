@@ -8,7 +8,7 @@ namespace QuanLyChungCu_SkyResidence.Repositories;
 public class CuDanRepository
 {
     public List<CuDan> GetAll() => Database.Query(
-        "SELECT MaCD, HoTen, NgaySinh, SoDienThoai, MaCH, VaiTro, TinhTrangCuTru FROM dbo.CuDan ORDER BY MaCD",
+        "SELECT MaCD, HoTen, NgaySinh, SDT AS SoDienThoai, MaCH, VaiTro, TinhTrangCuTru FROM dbo.CuDan ORDER BY MaCD",
         r => new CuDan
         {
             MaCD = r.GetString(0), HoTen = r.GetString(1),
@@ -50,11 +50,11 @@ public class CuDanRepository
                          AND TinhTrangCuTru=N'Đang cư trú')
                     THROW 50002, N'Căn hộ đã có chủ hộ đang cư trú. Hãy cập nhật chủ hộ cũ trước.', 1;
                 IF @Operation='insert'
-                    INSERT dbo.CuDan(MaCD,HoTen,NgaySinh,SoDienThoai,MaCH,VaiTro,TinhTrangCuTru)
+                    INSERT dbo.CuDan(MaCD,HoTen,NgaySinh,SDT,MaCH,VaiTro,TinhTrangCuTru)
                     VALUES(@MaCD,@HoTen,@NgaySinh,@SoDienThoai,@MaCH,@VaiTro,@TinhTrangCuTru);
                 ELSE
                     UPDATE dbo.CuDan SET HoTen=@HoTen, NgaySinh=@NgaySinh,
-                        SoDienThoai=@SoDienThoai, MaCH=@MaCH, VaiTro=@VaiTro, TinhTrangCuTru=@TinhTrangCuTru
+                    SDT=@SoDienThoai, MaCH=@MaCH, VaiTro=@VaiTro, TinhTrangCuTru=@TinhTrangCuTru
                     WHERE MaCD=@MaCD;
                 SET @Affected=@@ROWCOUNT;
             END
