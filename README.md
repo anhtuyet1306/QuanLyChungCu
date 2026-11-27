@@ -60,7 +60,7 @@ Dự án được thực hiện bởi 4 thành viên. Mỗi thành viên đều 
 ### Thành viên 4 – Đăng nhập, phân quyền và báo cáo thống kê
 
 **Công việc lập trình:**
-- Xây dựng giao diện đăng nhập và đăng xuất.
+- Xây dựng giao diện đăng nhập 
 - Lập trình chức năng xác thực tài khoản và mật khẩu.
 - Xây dựng chức năng phân quyền theo vai trò.
 - Xây dựng giao diện Dashboard.
