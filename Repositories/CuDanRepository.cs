@@ -34,43 +34,114 @@ public class CuDanRepository
         conn.Open();
         using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
         using var cmd = new SqlCommand("""
+            
             DECLARE @OldMaCH varchar(10), @Affected int = 0;
-            SELECT @OldMaCH=MaCH FROM dbo.CuDan WITH (UPDLOCK, HOLDLOCK) WHERE MaCD=@MaCD;
+
+            SELECT @OldMaCH = MaCH
+            FROM dbo.CuDan WITH (UPDLOCK, HOLDLOCK)
+            WHERE MaCD = @MaCD;
+
             DECLARE @LockedMaCH varchar(10);
-            SELECT @LockedMaCH=MaCH FROM dbo.CanHo WITH (UPDLOCK, HOLDLOCK)
-              WHERE MaCH IN (@OldMaCH, @MaCH) ORDER BY MaCH;
+
+            SELECT @LockedMaCH = MaCH
+            FROM dbo.CanHo WITH (UPDLOCK, HOLDLOCK)
+            WHERE MaCH IN (@OldMaCH, @MaCH)
+            ORDER BY MaCH;
+
             IF @Operation <> 'delete'
             BEGIN
-                IF @TinhTrangCuTru=N'Đang cư trú' AND @MaCH IS NOT NULL
-                   AND EXISTS (SELECT 1 FROM dbo.CanHo WHERE MaCH=@MaCH AND TrangThai=N'Đang bảo trì')
-                    THROW 50001, N'Căn hộ đang bảo trì. Hãy chọn căn hộ khác hoặc cập nhật tình trạng căn hộ trước.', 1;
-                IF @TinhTrangCuTru=N'Đang cư trú' AND @VaiTro=N'Chủ hộ'
-                   AND EXISTS (SELECT 1 FROM dbo.CuDan WITH (UPDLOCK, HOLDLOCK)
-                       WHERE MaCH=@MaCH AND MaCD<>@MaCD AND VaiTro=N'Chủ hộ'
-                         AND TinhTrangCuTru=N'Đang cư trú')
-                    THROW 50002, N'Căn hộ đã có chủ hộ đang cư trú. Hãy cập nhật chủ hộ cũ trước.', 1;
-                IF @Operation='insert'
-                    INSERT dbo.CuDan(MaCD,HoTen,NgaySinh,SDT,MaCH,VaiTro,TinhTrangCuTru)
-                    VALUES(@MaCD,@HoTen,@NgaySinh,@SoDienThoai,@MaCH,@VaiTro,@TinhTrangCuTru);
+                -- Không cho cư dân chuyển vào căn hộ đang bảo trì
+                IF @TinhTrangCuTru IN (N'Thường trú', N'Tạm trú', N'Tạm vắng')
+                AND @MaCH IS NOT NULL
+                AND EXISTS (
+                    SELECT 1
+                    FROM dbo.CanHo
+                    WHERE MaCH = @MaCH
+                        AND TrangThai = N'Đang bảo trì'
+                )
+                    THROW 50001,
+                        N'Căn hộ đang bảo trì. Hãy chọn căn hộ khác hoặc cập nhật tình trạng căn hộ trước.',
+                        1;
+
+                -- Không cho phép có hai chủ hộ đang cư trú trong cùng căn
+                IF @TinhTrangCuTru IN (N'Thường trú', N'Tạm trú', N'Tạm vắng')
+                AND @VaiTro = N'Chủ hộ'
+                AND EXISTS (
+                    SELECT 1
+                    FROM dbo.CuDan WITH (UPDLOCK, HOLDLOCK)
+                    WHERE MaCH = @MaCH
+                        AND MaCD <> @MaCD
+                        AND VaiTro = N'Chủ hộ'
+                        AND TinhTrangCuTru IN
+                            (N'Thường trú', N'Tạm trú', N'Tạm vắng')
+                )
+                    THROW 50002,
+                        N'Căn hộ đã có chủ hộ đang cư trú. Hãy cập nhật chủ hộ cũ trước.',
+                        1;
+
+                IF @Operation = 'insert'
+                BEGIN
+                    INSERT dbo.CuDan
+                        (MaCD, HoTen, NgaySinh, SDT, MaCH, VaiTro, TinhTrangCuTru)
+                    VALUES
+                        (@MaCD, @HoTen, @NgaySinh, @SoDienThoai,
+                        @MaCH, @VaiTro, @TinhTrangCuTru);
+                END
                 ELSE
-                    UPDATE dbo.CuDan SET HoTen=@HoTen, NgaySinh=@NgaySinh,
-                    SDT=@SoDienThoai, MaCH=@MaCH, VaiTro=@VaiTro, TinhTrangCuTru=@TinhTrangCuTru
-                    WHERE MaCD=@MaCD;
-                SET @Affected=@@ROWCOUNT;
+                BEGIN
+                    UPDATE dbo.CuDan
+                    SET HoTen = @HoTen,
+                        NgaySinh = @NgaySinh,
+                        SDT = @SoDienThoai,
+                        MaCH = @MaCH,
+                        VaiTro = @VaiTro,
+                        TinhTrangCuTru = @TinhTrangCuTru
+                    WHERE MaCD = @MaCD;
+                END;
+
+                SET @Affected = @@ROWCOUNT;
             END
             ELSE
             BEGIN
-                IF EXISTS (SELECT 1 FROM dbo.CuDan WHERE MaCD=@MaCD AND TinhTrangCuTru=N'Đã chuyển đi')
-                    THROW 50003, N'Giữ lại hồ sơ đã chuyển đi để tra cứu; không xóa hồ sơ này.', 1;
-                DELETE dbo.CuDan WHERE MaCD=@MaCD;
-                SET @Affected=@@ROWCOUNT;
+                IF EXISTS (
+                    SELECT 1
+                    FROM dbo.CuDan
+                    WHERE MaCD = @MaCD
+                    AND TinhTrangCuTru = N'Đã chuyển đi'
+                )
+                    THROW 50003,
+                        N'Giữ lại hồ sơ đã chuyển đi để tra cứu; không xóa hồ sơ này.',
+                        1;
+
+                DELETE dbo.CuDan
+                WHERE MaCD = @MaCD;
+
+                SET @Affected = @@ROWCOUNT;
             END;
+
+            -- Đồng bộ trạng thái các căn hộ liên quan
             IF @Affected > 0
-                UPDATE c SET TrangThai=CASE WHEN EXISTS (
-                    SELECT 1 FROM dbo.CuDan d WHERE d.MaCH=c.MaCH AND d.TinhTrangCuTru=N'Đang cư trú'
-                ) THEN N'Đang ở' ELSE N'Còn trống' END
-                FROM dbo.CanHo c WHERE c.MaCH IN (@OldMaCH, @MaCH) AND c.TrangThai<>N'Đang bảo trì';
+            BEGIN
+                UPDATE c
+                SET TrangThai =
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM dbo.CuDan d
+                            WHERE d.MaCH = c.MaCH
+                            AND d.TinhTrangCuTru IN
+                                (N'Thường trú', N'Tạm trú', N'Tạm vắng')
+                        )
+                        THEN N'Đang ở'
+                        ELSE N'Còn trống'
+                    END
+                FROM dbo.CanHo c
+                WHERE c.MaCH IN (@OldMaCH, @MaCH)
+                AND c.TrangThai <> N'Đang bảo trì';
+            END;
+
             SELECT @Affected;
+
             """, conn, transaction);
         cmd.Parameters.AddRange(new[]
         {

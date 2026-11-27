@@ -1,6 +1,7 @@
 
 using System.Drawing;
 using System.Windows.Forms;
+using QuanLyChungCu_SkyResidence.Services;
 using QuanLyChungCu_SkyResidence.Controls;
 using QuanLyChungCu_SkyResidence.Models;
 using QuanLyChungCu_SkyResidence.Repositories;
@@ -11,9 +12,12 @@ public class FeesPage : BasePage
 {
     private readonly LoaiPhiRepository repository = new();
 
-    public FeesPage()
-        : base("QUẢN LÝ PHÍ DỊCH VỤ",
-            "Quản lý các khoản phí và đơn giá áp dụng tại chung cư.")
+    public FeesPage(AuthUser user)
+    : base(
+        "QUẢN LÝ PHÍ DỊCH VỤ",
+        "Quản lý các khoản phí và đơn giá áp dụng tại chung cư.",
+        user,
+        "PHI")
     {
         AddColumn("Mã phí", nameof(LoaiPhi.MaLoaiPhi), 75, true);
         AddColumn("Tên khoản phí", nameof(LoaiPhi.TenPhi), 150);

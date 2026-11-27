@@ -6,18 +6,19 @@ using System.Windows.Forms;
 using QuanLyChungCu_SkyResidence.Controls;
 using QuanLyChungCu_SkyResidence.Models;
 using QuanLyChungCu_SkyResidence.Repositories;
-
+using QuanLyChungCu_SkyResidence.Services;
 namespace QuanLyChungCu_SkyResidence.Pages;
 
 public class IncidentsPage : BasePage
 {
     private readonly SuCoRepository repository = new();
 
-    public IncidentsPage()
-        : base(
-            "PHẢN ÁNH SỰ CỐ",
-            "Tiếp nhận và theo dõi tiến độ xử lý phản ánh."
-        )
+    public IncidentsPage(AuthUser user)
+    : base(
+        "PHẢN ÁNH SỰ CỐ",
+        "Tiếp nhận và theo dõi tiến độ xử lý phản ánh.",
+        user,
+        "SUCO")
     {
         AddColumn("Mã sự cố", "MaSC", 75, true);
         AddColumn("Cư dân", "CuDan", 120);

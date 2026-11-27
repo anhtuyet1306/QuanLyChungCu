@@ -5,14 +5,14 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using QuanLyChungCu_SkyResidence.Repositories;
-
+using QuanLyChungCu_SkyResidence.Services;
 namespace QuanLyChungCu_SkyResidence.Pages;
 
 public class DashboardPage : UserControl
 {
     private readonly Color navy = Color.FromArgb(18, 53, 94);
     private readonly Color background = Color.FromArgb(244, 248, 255);
-
+    private readonly AuthUser currentUser;
     private readonly ReportsRepository reports = new();
     private readonly CanHoRepository canHoRepository = new();
     private readonly CuDanRepository cuDanRepository = new();
@@ -28,16 +28,18 @@ public class DashboardPage : UserControl
 
     private readonly System.Collections.Generic.List<(int Month, decimal Value)> revenue = new();
 
-    public DashboardPage()
-    {
-        Dock = DockStyle.Fill;
-        BackColor = background;
-        Padding = new Padding(18);
+    public DashboardPage(AuthUser user)
+{
+    currentUser = user ?? throw new ArgumentNullException(nameof(user));
 
-        BuildInterface();
+    Dock = DockStyle.Fill;
+    BackColor = background;
+    Padding = new Padding(18);
 
-        LoadDashboard();
-    }
+    BuildInterface();
+
+    LoadDashboard();
+}
 
     private void BuildInterface()
     {
@@ -444,6 +446,8 @@ public class DashboardPage : UserControl
         {
             ShowError(ex);
         }
+        if (!currentUser.HasPermission("CANHO", "xem"))
+    return;
     }
 
     private void ShowResidents()
@@ -467,6 +471,8 @@ public class DashboardPage : UserControl
         {
             ShowError(ex);
         }
+        if (!currentUser.HasPermission("CUDAN", "xem"))
+    return;
     }
 
     private void ShowUnpaidInvoices()
@@ -493,6 +499,8 @@ public class DashboardPage : UserControl
         {
             ShowError(ex);
         }
+        if (!currentUser.HasPermission("THANHTOAN", "xem"))
+    return;
     }
 
     private void ShowIncidents()
@@ -502,6 +510,8 @@ public class DashboardPage : UserControl
             "SkyResidence",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
+        if (!currentUser.HasPermission("SUCO", "xem"))
+    return;
     }
 
     private void ShowDetails<T>(string title, System.Collections.Generic.List<T> items)

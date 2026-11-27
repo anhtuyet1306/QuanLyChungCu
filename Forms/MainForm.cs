@@ -138,7 +138,7 @@ public class MainForm : Form
         side.Controls.Add(menu, 0, 1);
 
         AddMenu(menu, "DASHBOARD", "Trang chủ",
-            () => ShowPage(new DashboardPage()));
+            () => ShowPage(new DashboardPage(currentUser)));
 
         AddMenu(menu, "CUDAN", "Quản lý cư dân",
             () => ShowPage(new ResidentsPage(currentUser)));
@@ -147,19 +147,19 @@ public class MainForm : Form
             () => ShowPage(new ApartmentsPage(currentUser)));
 
         AddMenu(menu, "PHI", "Quản lý phí dịch vụ",
-            () => ShowPage(new FeesPage()));
+            () => ShowPage(new FeesPage(currentUser)));
 
         AddMenu(menu, "THANHTOAN", "Quản lý thanh toán",
-            () => ShowPage(new PaymentsPage()));
+            () => ShowPage(new PaymentsPage(currentUser)));
 
         AddMenu(menu, "TIENICH", "Đăng ký tiện ích",
-            () => ShowPage(new AmenitiesPage()));
+            () => ShowPage(new AmenitiesPage(currentUser)));
 
         AddMenu(menu, "SUCO", "Phản ánh sự cố",
-            () => ShowPage(new IncidentsPage()));
+            () => ShowPage(new IncidentsPage(currentUser)));
 
         AddMenu(menu, "BAOCAO", "Báo cáo - Thống kê",
-            () => ShowPage(new ReportsPage()));
+            () => ShowPage(new ReportsPage(currentUser)));
 
         AddMenu(menu, "HETHONG", "Cài đặt",
             () => ShowPage(new SettingsPage(currentUser)));
@@ -224,7 +224,7 @@ public class MainForm : Form
     {
         if (currentUser.HasPermission("DASHBOARD", "xem"))
         {
-            ShowPage(new DashboardPage());
+            ShowPage(new DashboardPage(currentUser));
             return;
         }
 
@@ -233,15 +233,15 @@ public class MainForm : Form
         else if (currentUser.HasPermission("CANHO", "xem"))
             ShowPage(new ApartmentsPage(currentUser));
         else if (currentUser.HasPermission("PHI", "xem"))
-            ShowPage(new FeesPage());
+            ShowPage(new FeesPage(currentUser));
         else if (currentUser.HasPermission("THANHTOAN", "xem"))
-            ShowPage(new PaymentsPage());
+            ShowPage(new PaymentsPage(currentUser));
         else if (currentUser.HasPermission("TIENICH", "xem"))
-            ShowPage(new AmenitiesPage());
+            ShowPage(new AmenitiesPage(currentUser));
         else if (currentUser.HasPermission("SUCO", "xem"))
-            ShowPage(new IncidentsPage());
+            ShowPage(new IncidentsPage(currentUser));
         else if (currentUser.HasPermission("BAOCAO", "xem"))
-            ShowPage(new ReportsPage());
+            ShowPage(new ReportsPage(currentUser));
         else if (currentUser.HasPermission("HETHONG", "xem"))
             ShowPage(new SettingsPage(currentUser));
         else

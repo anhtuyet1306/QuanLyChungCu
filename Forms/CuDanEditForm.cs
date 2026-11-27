@@ -74,7 +74,14 @@ public class CuDanEditForm : Form, QuanLyChungCu_SkyResidence.Controls.IEntityEd
         cboVaiTro.DropDownStyle = ComboBoxStyle.DropDownList;
         cboVaiTro.Items.AddRange(new object[] { "Chủ hộ", "Thành viên" });
         cboTinhTrang.DropDownStyle = ComboBoxStyle.DropDownList;
-        cboTinhTrang.Items.AddRange(new object[] { CuDan.DangCuTru, CuDan.DaChuyenDi });
+        
+        cboTinhTrang.Items.AddRange(new object[]
+        {
+            CuDan.ThuongTru,
+            CuDan.TamTru,
+            CuDan.TamVang,
+            CuDan.DaChuyenDi
+        });
 
         var datePanel = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight };
         dtNgaySinh.Width = 135;

@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using QuanLyChungCu_SkyResidence.Controls;
 using QuanLyChungCu_SkyResidence.Models;
 using QuanLyChungCu_SkyResidence.Repositories;
-
+using QuanLyChungCu_SkyResidence.Services;
 namespace QuanLyChungCu_SkyResidence.Pages;
 
 public class PaymentsPage : BasePage
@@ -17,9 +17,12 @@ public class PaymentsPage : BasePage
         "B101", "B201", "B202", "C301", "C302"
     };
 
-    public PaymentsPage()
-        : base("QUẢN LÝ THANH TOÁN",
-            "Theo dõi hóa đơn, số tiền đã thu và công nợ còn lại.")
+    public PaymentsPage(AuthUser user)
+    : base(
+        "QUẢN LÝ THANH TOÁN",
+        "Theo dõi hóa đơn, số tiền đã thu và công nợ còn lại.",
+        user,
+        "THANHTOAN")
     {
         AddColumn("Mã hóa đơn", nameof(HoaDon.MaHoaDon), 85, true);
         AddColumn("Căn hộ", nameof(HoaDon.MaCH), 70, true);

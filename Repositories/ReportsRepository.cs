@@ -92,35 +92,33 @@ public class ReportsRepository
     }
 
     // Lấy doanh thu theo loại phí trong một năm
-    public List<RevenueByFeeReport> GetRevenueByFee(int year)
-    {
-        const string sql = @"
-            SELECT
-                Nam,
-                Thang,
-                MaLoaiPhi,
-                TenPhi,
-                TongTien
-            FROM dbo.vw_DoanhThuTheoLoaiPhi
-            WHERE Nam = @Nam
-            ORDER BY Thang, TenPhi;";
+    // Lấy doanh thu tổng hợp theo từng loại phí trong một năm
+public List<RevenueByFeeReport> GetRevenueByFee(int year)
+{
+    const string sql = @"
+        SELECT
+            MaLoaiPhi,
+            TenPhi,
+            SUM(TongTien) AS TongTien
+        FROM dbo.vw_DoanhThuTheoLoaiPhi
+        WHERE Nam = @Nam
+        GROUP BY MaLoaiPhi, TenPhi
+        ORDER BY TongTien DESC;";
 
-        return Database.Query(
-            sql,
-            reader => new RevenueByFeeReport
-            {
-                Nam = Convert.ToInt32(reader["Nam"]),
-                Thang = Convert.ToInt32(reader["Thang"]),
-                MaLoaiPhi = reader["MaLoaiPhi"].ToString() ?? "",
-                TenPhi = reader["TenPhi"].ToString() ?? "",
-                TongTien = Convert.ToDecimal(reader["TongTien"])
-            },
-            new SqlParameter("@Nam", SqlDbType.Int)
-            {
-                Value = year
-            }
-        );
-    }
+    return Database.Query(
+        sql,
+        reader => new RevenueByFeeReport
+        {
+            MaLoaiPhi = reader["MaLoaiPhi"].ToString() ?? "",
+            TenPhi = reader["TenPhi"].ToString() ?? "",
+            TongTien = Convert.ToDecimal(reader["TongTien"])
+        },
+        new SqlParameter("@Nam", SqlDbType.Int)
+        {
+            Value = year
+        }
+    );
+}
 }
 
 // Số liệu tổng quan
@@ -152,10 +150,9 @@ public class DebtReport
 }
 
 // Báo cáo doanh thu theo loại phí
+// Báo cáo doanh thu theo loại phí
 public class RevenueByFeeReport
 {
-    public int Nam { get; set; }
-    public int Thang { get; set; }
     public string MaLoaiPhi { get; set; } = "";
     public string TenPhi { get; set; } = "";
     public decimal TongTien { get; set; }

@@ -6,16 +6,19 @@ using System.Windows.Forms;
 using QuanLyChungCu_SkyResidence.Controls;
 using QuanLyChungCu_SkyResidence.Models;
 using QuanLyChungCu_SkyResidence.Repositories;
-
+using QuanLyChungCu_SkyResidence.Services;
 namespace QuanLyChungCu_SkyResidence.Pages;
 
 public class AmenitiesPage : BasePage
 {
     private readonly DangKyTienIchRepository repository = new();
 
-    public AmenitiesPage()
-        : base("ĐĂNG KÝ TIỆN ÍCH",
-            "Quản lý đăng ký, cập nhật và xét duyệt tiện ích cư dân.")
+    public AmenitiesPage(AuthUser user)
+    : base(
+        "ĐĂNG KÝ TIỆN ÍCH",
+        "Quản lý đăng ký, cập nhật và xét duyệt tiện ích cư dân.",
+        user,
+        "TIENICH")
     {
         AddColumn("Mã đăng ký", nameof(DangKyTienIch.MaDK), 75, true);
         AddColumn("Cư dân", nameof(DangKyTienIch.HoTen), 120);
@@ -44,7 +47,6 @@ public class AmenitiesPage : BasePage
                 e.CellStyle.ForeColor = Color.FromArgb(210, 65, 65);
         };
 
-        LoadData();
     }
 
     protected override void LoadData()
